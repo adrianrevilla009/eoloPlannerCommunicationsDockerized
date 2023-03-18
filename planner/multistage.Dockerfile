@@ -12,7 +12,10 @@ RUN mvn -B clean package -DskipTests
 # Necesitamos ejecutar un comando wait-for-it para que la ejecución del jar se haga solo cuando los servicios esten corriendo
 FROM eclipse-temurin:17-jdk
 WORKDIR /usr/src/app/
+
+RUN curl -LJO https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+    && chmod +x /usr/src/app/wait-for-it.sh \
+
 COPY --from=contenedor_compilacion /eoloPlannerCommunications/planner/target/*.jar /usr/src/app/
-RUN chmod +x /eoloPlannerCommunications/wait-for-it.sh
 EXPOSE 8080
 CMD [ "java", "-jar", "planner-0.0.1-SNAPSHOT.jar" ]
