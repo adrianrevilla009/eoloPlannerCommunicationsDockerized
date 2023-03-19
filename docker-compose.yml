@@ -1,0 +1,81 @@
+services:
+  planner:
+    image: adrian2606/eoloplannercommunications-planner:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - rabbitmq
+    command: ["./wait-for-it.sh", "db:3306", "--", "java", "-jar", "server.jar"]
+
+  server:
+    image: adrian2606/eoloplannercommunications-server:version1
+    ports:
+      - 9000:9000
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:jdbc:mysql://localhost/eoloplantsDB
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  toposervice:
+    image: adrian2606/eoloplannercommunications-toposervice:version1
+    ports:
+      - 8181:8181
+    environment:
+      environment:
+        - MONGODB_HOST=db
+        - MONGODB_PORT=27017
+        - MONGODB_COLLECTION=topo
+    depends_on:
+      - mongo
+    restart: on-failure
+
+  weatherservice:
+    image: adrian2606/eoloplannercommunications-weatherservice:version1
+    ports:
+      - 9090:9090
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=eoloplantsDB
+    volumes:
+      - ./mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  mongo:
+    image: mongo:4.4-bionic
+    container_name: mongo-container
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo:/var/lib/mongo
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq_container
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
