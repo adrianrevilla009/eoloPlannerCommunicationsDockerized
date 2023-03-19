@@ -5,7 +5,7 @@ services:
       - 8080:8080
     depends_on:
       - rabbitmq
-    command: ["./wait-for-it.sh", "db:3306", "--", "java", "-jar", "server.jar"]
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "java", "-jar", "planner-0.0.1-SNAPSHOT.jar"]
 
   server:
     image: adrian2606/eoloplannercommunications-server:version1
@@ -16,20 +16,19 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=password
     depends_on:
-      mysql:
-        condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      mysql:
         condition: service_healthy
 
   toposervice:
-    image: adrian2606/eoloplannercommunications-toposervice:version1
+    image: adrian2606/eoloplannercomunnications-toposervice:version1
     ports:
       - 8181:8181
     environment:
-      environment:
-        - MONGODB_HOST=db
-        - MONGODB_PORT=27017
-        - MONGODB_COLLECTION=topo
+      - MONGODB_HOST=db
+      - MONGODB_PORT=27017
+      - MONGODB_COLLECTION=topo
     depends_on:
       - mongo
     restart: on-failure
@@ -50,7 +49,7 @@ services:
     volumes:
       - ./mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-ppassword"]
       interval: 5s
       timeout: 5s
       start_period: 10s
@@ -79,3 +78,8 @@ services:
     volumes:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
