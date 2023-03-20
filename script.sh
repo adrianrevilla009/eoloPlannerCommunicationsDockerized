@@ -1,12 +1,15 @@
+sudo git clone https://github.com/adrianrevilla009/eoloPlannerCommunicationsDockerized.git /home/eoloPlannerCommunicationsDockerized
+cd /home/eoloPlannerCommunicationsDockerized
+
 # Server image jib quarkus
 cd server
-./mvnw quarkus:add-extension -Dextensions='container-image-jib'
-./mvnw install
+mvn quarkus:add-extension -Dextensions='container-image-jib'
+mvn install
 cd ..
 # Weather service image graal native quarkus
 cd weatherservice
-./mvnw quarkus:add-extension -Dextensions='container-image-docker'
-./mvnw install -Dnative
+mvn quarkus:add-extension -Dextensions='container-image-docker'
+mvn install -Dnative
 cd ..
 
 # Planner image multistage dockerfile spring

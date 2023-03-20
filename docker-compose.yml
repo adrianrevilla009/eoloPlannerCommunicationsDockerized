@@ -11,7 +11,7 @@ services:
       - SPRING_RABBITMQ_PASSWORD=guest
     depends_on:
       - rabbitmq
-    # command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "java", "-jar", "planner-0.0.1-SNAPSHOT.jar"]
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "java", "-jar", "planner-0.0.1-SNAPSHOT.jar"]
 
   server:
     image: adrian2606/eoloplannercommunications-server:version1
