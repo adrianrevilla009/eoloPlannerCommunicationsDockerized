@@ -3,18 +3,26 @@ services:
     image: adrian2606/eoloplannercommunications-planner:latest
     ports:
       - 8080:8080
+    environment:
+      - SPRING_CLOUD_STREAM_RABBIT_BINDER_NODES=rabbitmq:5672
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
     depends_on:
       - rabbitmq
-    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "java", "-jar", "planner-0.0.1-SNAPSHOT.jar"]
+    # command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "java", "-jar", "planner-0.0.1-SNAPSHOT.jar"]
 
   server:
     image: adrian2606/eoloplannercommunications-server:version1
     ports:
       - 9000:9000
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:jdbc:mysql://localhost/eoloplantsDB
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=password
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://mysql/eoloplantsDB
+      - QUARKUS_DATASOURCE_USERNAME=root
+      - QUARKUS_DATASOURCE_PASSWORD=password
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -26,9 +34,9 @@ services:
     ports:
       - 8181:8181
     environment:
-      - MONGODB_HOST=db
-      - MONGODB_PORT=27017
-      - MONGODB_COLLECTION=topo
+      - SPRING_DATA_MONGODB_HOST=mongo
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_DATA_MONGODB_DATABASE=topo
     depends_on:
       - mongo
     restart: on-failure
@@ -40,7 +48,6 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: mysql-container
     ports:
       - 3306:3306
     environment:
@@ -57,9 +64,10 @@ services:
 
   mongo:
     image: mongo:4.4-bionic
-    container_name: mongo-container
     ports:
       - 27017:27017
+    environment:
+      - MONGO_INITDB_DATABASE=topo
     volumes:
       - ./mongo:/var/lib/mongo
     healthcheck:
@@ -71,13 +79,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.11-management
-    container_name: rabbitmq_container
     ports:
       - 5672:5672
       - 15672:15672
     volumes:
-      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq
-      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+      - ./rabbitmq/data/:/var/lib/rabbitmq
+      - ./rabbitmq/log/:/var/log/rabbitmq
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
