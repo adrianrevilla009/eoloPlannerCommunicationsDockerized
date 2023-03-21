@@ -27,7 +27,7 @@ Los comandos utilizados han sido
 El primer modo de desarrollo seria montar la app, generar las imagenes, el docker dompose y levantar los servicios una vez definidos
 
 Para ejecutar la aplicación se debe colocar en la raiz del proyecto y ejecutar el siguiente comando:
-    - docker compose up
+    - docker compose -f "docker-compose.yml" up
 Despues acceder a la siguiente url: http://localhost:9000/
 ![handler.png](./static/img/app_index.png)
 Comprobamos que todos los servicios estan corriendo
@@ -38,4 +38,7 @@ Los volumenes montados se han hecho sobre la raiz de este proyecto en las carpet
     - rabbitmq
 
 
-El segundo modo de desarrollo seria utilizar devcontainers para levantar un contenedor e ir montando la app sobre el desde el IDE
+El segundo modo de desarrollo seria utilizar devcontainers para levantar un contenedor e ir montando la app sobre el desde el IDE.
+Para ello debemos levantar primero las bases de datos y el broker.
+    - docker compose -f "docker-compose-dev.yml" up
+Abrir con visual studio cualquiera de los dev containers generados y lanzarlo para comprobar la conexion contra los servicios de bd.
